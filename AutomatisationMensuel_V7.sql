@@ -1,6 +1,6 @@
 /**************************************************************************************************************************/ 
-/* 											DA-510  Automatisation du Reporting Mensuel 		       				      */
-/*											         Date : /09/2019       V.3						     			  */
+/* 											Automatisation du Reporting Mensuel 		       				      */
+/*											            V.3						     			  */
 /**************************************************************************************************************************/
 
 /*
@@ -22,7 +22,7 @@
 Etude à faire : Catégorisation marchand + automatisation de la catégorisation de longtail 
 Découper le retail en des granularité plus fines : Automobile, Fashion, etc..
 
-(Il faut créer une jointure entre la BDD financer et la BDD avec la dim marchand dans tableau) ?? 
+(Il faut créer une jointure entre la BDD finance et la BDD avec la dim marchand dans tableau) ?? 
 
 -- Règles pour l'historique des dates 
    Analyse mensuel : données de l'année en cours et N-1 à partir de janvier 
@@ -35,7 +35,7 @@ remplacement de la table de DM : schéma sandbox => schéma metadata
 
 
 --envoyer fichier
-scp /home/jdemesnard/202012_liste_dm.csv jdemesnard@dwh-etx.reporting.db:~
+scp /home/fgoureau/202012_liste_dm.csv fgoureau@dwh-etx.reporting.db:~
 
 --scp /home/dfall/dl/201910_liste_dm.csv dfall@dwh.reporting.dev:~
 /*******************************************************************************************************
@@ -64,7 +64,7 @@ COPY metadata.extract_fichier_dm_cog(
                  company_name
 )
 
-FROM '/home/jdemesnard/202012_liste_dm.csv' DELIMITER ';' CSV HEADER;
+FROM '/home/fgoureau/202012_liste_dm.csv' DELIMITER ';' CSV HEADER;
 
 
 DROP TABLE IF EXISTS reporting_payment.truncate_insert_reporting_monthly_transaction; 
