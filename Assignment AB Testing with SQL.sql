@@ -1,6 +1,6 @@
 --We are running an experiment at an item-level, which means all users who visit will see the same page, but the layout of different item pages may differ.
 --Compare this table to the assignment events we captured for user_level_testing.
---Q1) Does this table have everything you need to compute metrics like 30-day view-binary?
+--Does this table have everything we need to compute metrics like 30-day view-binary?
 
 SELECT 
   * 
@@ -9,12 +9,12 @@ FROM
   
 SELECT * FROM dsv1069.final_assignments;
   
---ANSWER Q1 : No, we need the date and time of assignment in order to compute some of our metrics like 30-day view-binary.
+--ANSWER : No, we need the date and time of assignment in order to compute some of our metrics like 30-day view-binary.
 
 
 
 
-/*Q2) Write a query and table creation statement to make final_assignments_qa look like the final_assignments table. If you discovered something missing in part 1, you may fill in the value with a place holder of the appropriate data type. */
+/* Let's write a query and table creation statement to make final_assignments_qa look like the final_assignments table. */
 
 WITH final_assignments_qa_fixed
 AS 
@@ -57,7 +57,7 @@ SELECT * FROM final_assignments_qa_fixed
 
 
 
-/*Q3) Use the final_assignments table to calculate the order binary for the 30 day window after the test assignment for item_test_2 (You may include the day the test started)*/
+/* Let's use the final_assignments table to calculate the order binary for the 30 day window after the test assignment for item_test_2 (includung the day the test started)*/
 SELECT order_binary.test_assignment,
        COUNT(DISTINCT order_binary.item_id) AS num_orders,
        SUM(order_binary.order_binary_30d) AS sum_orders_bin_30d
@@ -79,7 +79,7 @@ GROUP BY order_binary.test_assignment
 
 
 
-/*Q4) Use the final_assignments table to calculate the view binary and average views for the 30 day window, after the test assignment for item_test_2. (You may include the day the test started)*/
+/* We will use the final_assignments table to calculate the view binary and average views for the 30 day window, after the test assignment for item_test_2. (including the day the test started)*/
 SELECT view_binary.test_assignment,
        COUNT(DISTINCT view_binary.item_id) AS num_views,
        SUM(view_binary.view_bin_30d) AS sum_view_bin_30d,
@@ -102,8 +102,8 @@ FROM
 GROUP BY view_binary.test_assignment
 
 
-/* Q5) Use the https://thumbtack.github.io/abba/demo/abba.html to compute the lifts in metrics and the p-values for the binary metrics ( 30 day order binary and 30 day view binary) using a interval 95% confidence.*/
+/* We used ABBA (https://thumbtack.github.io/abba/demo/abba.html) to compute the lifts in metrics and the p-values for the binary metrics ( 30 day order binary and 30 day view binary) using a interval 95% confidence.*/
 
 --For orders_bin: lift is -14% – 12% (-1%) and pval is 0.88
 --For view_bin:   lift is -1.6% – 6.1% (2.3%) and pval is 0.25
--- For test_2, there was no signficant variation of the number of views and orders between control and treatment.
+-- This means that for test_2, there was no signficant variation of the number of views and orders between control and treatment.
