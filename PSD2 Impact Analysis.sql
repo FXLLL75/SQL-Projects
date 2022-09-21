@@ -8,6 +8,9 @@ SELECT inv.id,
    cer.avg_quotation_value
 FROM dimensions.intervals AS inv
 INNER JOIN consolidations.common_exchangerates cer ON (cer.interval_id = inv.id) -- conversion
+AND ce.base_currency_id = tpp.devise_id 
+AND ce.term_currency_id = '212' -- quoation value et term_currency euro
+
 WHERE type = 'day'
 AND inv.start_date >= '2021-05-01 00:00:00+00'::timestamptz
 AND inv.start_date < '2021-09-01 00:00:00+00'::timestamptz;
@@ -25,35 +28,27 @@ AS
 SELECT
 mer.business_id,
 mer.company_name as merchant,
---acq.label as acqueror,
---psp.label as psp,
+acq.label as acqueror,
+psp.label as psp,
 to_char(tpp.transaction_date, 'YYYY-MM') as trx_month,
---to_char(tpp.transaction_date, 'YYYY-MM-DD') as trx_day,
+to_char(tpp.transaction_date, 'YYYY-MM-DD') as trx_day,
 eci.id as eci_id,
 pcpm.label as payment_method,
 tpp.issuing_institution as banque_emettrice,
 tpp.acquirer_transaction_message as refus_acquereur,
---- check DSP2 (not needed) :
---tpp.authentication_indicator,
---tpp.authentication_status,
-/*Case when tpp.transaction_amount::numeric  >= '0.00' and tpp.transaction_amount::numeric < '11.00' then 'tranche 1' 
-when tpp.transaction_amount::numeric  >= '11.00' and tpp.transaction_amount::numeric < '21.00' then 'tranche 2'  
-when tpp.transaction_amount::numeric  >= '21.00' and tpp.transaction_amount::numeric < '31.00' then 'tranche 3' 
-when tpp.transaction_amount::numeric  >= '31.00' and tpp.transaction_amount::numeric < '41.00' then 'tranche 4' 
-when tpp.transaction_amount::numeric  >= '41.00' and tpp.transaction_amount::numeric < '51.00' then 'tranche 5' 
-when tpp.transaction_amount::numeric  >= '51.00' and tpp.transaction_amount::numeric < '76.00' then 'tranche 6' 
-when tpp.transaction_amount::numeric  >= '76.00' and tpp.transaction_amount::numeric < '101.00' then 'tranche 7'  
-when tpp.transaction_amount::numeric  >= '101.00' and tpp.transaction_amount::numeric < '151.00' then 'tranche 8' 
-when tpp.transaction_amount::numeric  >= '151.00' and tpp.transaction_amount::numeric < '201.00' then 'tranche 9'  
-when tpp.transaction_amount::numeric  >= '201.00' and tpp.transaction_amount::numeric< '501.00' then 'tranche 10' 
-when tpp.transaction_amount::numeric  >= '501.00' and tpp.transaction_amount::numeric < '1001.00' then 'tranche 11' 
-when tpp.transaction_amount::numeric  >= '1001.00' and tpp.transaction_amount::numeric < '2001.00' then 'tranche 12' 
-when tpp.transaction_amount::numeric  >= '2001.00' then 'tranche 13' end as tranche_amount,*/
+
 Case when tpp.transaction_amount  >= '0.00' and tpp.transaction_amount < '31.00' then 'tranche 0-30' 
 when tpp.transaction_amount  >= '31.00' and tpp.transaction_amount < '101.00' then 'tranche 31-100'    
 when tpp.transaction_amount  >= '101.00' and tpp.transaction_amount < '251.00' then 'tranche 101-250' 
 when tpp.transaction_amount  >= '251.00' and tpp.transaction_amount < '501.00' then 'tranche 251-500'  
 when tpp.transaction_amount  >= '501.00' then 'tranche >500'end as tranches,
+
+/*autre méthode pas retenue Case when tpp.transaction_amount::numeric  >= '0.00' and tpp.transaction_amount::numeric < '11.00' then 'tranche 1' 
+when tpp.transaction_amount::numeric  >= '11.00' and tpp.transaction_amount::numeric < '21.00' then 'tranche 2'*/
+
+--- check DSP2 (not needed) :
+--tpp.authentication_indicator,
+--tpp.authentication_status,
 
 count(tpp.transaction_id) as created_trx,
 count(case when st.authorized_and_pending is not null OR st.authorized is not null then tpp.transaction_id end)  as authed_trx,
@@ -110,20 +105,13 @@ INNER JOIN dimensions.payment_applifi_merchants mer ON mer.id = tpp.merchant_id 
 INNER JOIN dimensions.payment_common_ecommerce_indicator eci ON eci.id = tpp.in_ecommerce_indicator_id AND eci.id <> 8
 INNER JOIN dimensions.payment_common_payment_method pcpm ON pcpm.id = tpp.payment_method_id
 INNER JOIN scripts.payment_tpp_transaction_status st ON st.transaction_id = tpp.transaction_id
---INNER JOIN dimensions.payment_common_acqueror acq ON acq.id = tpp.acqueror_id
---INNER JOIN dimensions.payment_common_psp psp ON psp.id = tpp.psp_id
---INNER JOIN sandbox.intervals_dsp2 iD ON iD.start_date_day = tpp.transaction_date::date AND iD.base_currency_id = tpp.devise_id 
+INNER JOIN dimensions.payment_common_acqueror acq ON acq.id = tpp.acqueror_id
+INNER JOIN dimensions.payment_common_psp psp ON psp.id = tpp.psp_id
+INNER JOIN sandbox.intervals_dsp2 iD ON iD.start_date_day = tpp.transaction_date::date AND iD.base_currency_id = tpp.devise_id 
 -- jointure avec la log.payment_tpp_transaction sur la transaction_date
-
-/**inner join dimensions.intervals inter ON inter.type = 'day' and tpp.transaction_date >= inter.start_date and tpp.transaction_date < inter.end_date
-INNER JOIN consolidations.common_exchangerates ce ON ce.interval_id = inter.id
-AND ce.base_currency_id = tpp.devise_id 
-AND ce.term_currency_id = '212' -- jointure intervale, quoation value et term_currency euro**/
-
 
 WHERE tpp.transaction_date >= '2021-05-01:00:00+00' AND tpp.transaction_date < '2021-09-01:00:00+00'
 
-
-GROUP BY 1,2,3,4,5,6,7,8;
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11;
 
 \copy (SELECT * FROM sandbox.extract_dsp2_VF) to ~/extract_dsp2_VF.csv csv header delimiter ';'
