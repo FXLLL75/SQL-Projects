@@ -1,6 +1,6 @@
-/**                                                                          SAS DATA ANALYST
+/**                                                                          SAS DATA ANALYST PROJECT
                                                                               Félix Goureau
-                                                                              15/10/2021               
+                                                                                             
 */
 /************************************************************************************************************************/
 /* 			            STEP 1 : IMPORT .CSV DATAS INTO SQL TABLE		        			                */
@@ -68,7 +68,7 @@ ii) days_truncate
 
 
 /************************************************************************************************************************/
-/*    STEP 2 : LEFT JOIN TABLE DAYS ON TABLE SUBSCRIPTIONS PERIOD TO HAVE TIME VARIABLE AND DAY BY DAY GRANULARITY DATA  */
+/*    STEP 2 : LEFT JOIN TABLE DAYS ON TABLE SUBSCRIPTIONS PERIOD. TO HAVE TIME VARIABLE AND DAY BY DAY GRANULARITY DATA  */
 /***********************************************************************************************************************/
 
 /*Insert days rows from the utility table, in order to have date variable and not only start or end of subscription period date*/
@@ -103,7 +103,7 @@ from days d
 /***********************************************************************************************************************/
 
              /****************************************************/
-/************ 3.1 CREATE NEW INDICATOR : DURATION OF THE SUBSCRIPTION  **********/
+/************ 3.1 CREATE NEW KPI : DURATION OF THE SUBSCRIPTION  **********/
 /***********************   CALCULATION TEST      **************************/
 SELECT
 to_char(date_day,'YYYY-MM') as date_month,
@@ -233,7 +233,7 @@ WHERE (start_date > end_date) ;
 
 
 -----------------------------------------------------------------------------------------------------------------------
---------------------------- 4.2 HAVE A LOOK AT MIN MAX AVG VALUES OF DATA SET :
+--------------------------- 4.2 HAVE A LOOK AT MIN MAX AVG VALUES OF THE KPI  :
 -----------------------------------------------------------------------------------------------------------------------
 
 
@@ -366,7 +366,7 @@ sub_duration
 from days_sub_table_significant_plans
 ;
 -- returns 548 rows : There is 548 plans with unique duration of subscription. 
--- Considering there is only 29 different plans, we can assume that there is no correlation betweend the type of offers and the duration of the subscription.
+-- Considering there is only 29 different plans, we can assume that there is no correlation between the type of offers and the duration of the subscription.
 
 ---- average sub_duration of plans :
 SELECT
@@ -684,32 +684,3 @@ select time_period+1, 'CHURN', count
   from calculated where next_month_churn is not null
 order by 1
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
