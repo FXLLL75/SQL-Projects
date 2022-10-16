@@ -265,7 +265,7 @@ drop view reporting_payment.v_transaction_financial_monthly_reporting;
 	   	mer.activity_sector_id,
 	   	i.avg_quotation_value
 	FROM logs.payment_tpp_transaction tpp
-	INNER JOIN dimensions.payment_applifi_merchants mer ON mer.id = tpp.merchant_id AND mer.business_id <> '1366133'
+	INNER JOIN dimensions.payment_applifi_merchants mer ON mer.id = tpp.merchant_id AND mer.business_id <> '134655'
 	INNER JOIN t_intervals_reporting_mensuel i ON (i.start_date_day = tpp.transaction_date::date AND i.base_currency_id = tpp.devise_id) 
 	WHERE
 		tpp.transaction_date >= v_start AND
