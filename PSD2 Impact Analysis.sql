@@ -69,39 +69,7 @@ count(distinct CASE WHEN (st.authorized is not null or st.authorized_and_pending
 
 FROM logs.payment_tpp_transaction tpp
 INNER JOIN dimensions.common_countries cco ON cco.id = tpp.country_id AND cco.id = 76 -- focus payment_country FR
-INNER JOIN dimensions.payment_applifi_merchants mer ON mer.id = tpp.merchant_id AND mer.business_id in ('1369542',
-'1368152',
-'1370925',
-'1366016',
-'1372605',
-'1373680',
-'1372674',
-'1367398',
-'1373100',
-'1371404',
-'1369424',
-'1368336',
-'1373526',
-'1372940',
-'1373307',
-'1366102',
-'1366698',
-'1373129',
-'1372928',
-'1367859',
-'1367419',
-'1370478',
-'1367357',
-'1373429',
-'1367599',
-'13558717',
-'1367180',
-'1367362',
-'1373273',
-'1373038',
-'1368267',
-'1373519',
-'1370772')
+INNER JOIN dimensions.payment_applifi_merchants mer ON mer.id = tpp.merchant_id AND mer.business_id in ('259894','48263165',894621','89462')
 INNER JOIN dimensions.payment_common_ecommerce_indicator eci ON eci.id = tpp.in_ecommerce_indicator_id AND eci.id <> 8
 INNER JOIN dimensions.payment_common_payment_method pcpm ON pcpm.id = tpp.payment_method_id
 INNER JOIN scripts.payment_tpp_transaction_status st ON st.transaction_id = tpp.transaction_id
