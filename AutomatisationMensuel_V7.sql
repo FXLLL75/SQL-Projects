@@ -35,9 +35,9 @@ remplacement de la table de DM : schéma sandbox => schéma metadata
 
 
 --envoyer fichier
-scp /home/fgoureau/202012_liste_dm.csv fgoureau@dwh-etx.reporting.db:~
+scp /home/fgoureau/_liste_dm.csv fgoureau@dwh-etx.reporting.db:~
 
---scp /home/dfall/dl/201910_liste_dm.csv dfall@dwh.reporting.dev:~
+--scp /home/dfall/dl/liste_dm.csv df@dwh.reporting.dev:~
 /*******************************************************************************************************
 Truncate Table
 
@@ -64,7 +64,7 @@ COPY metadata.extract_fichier_dm_cog(
                  company_name
 )
 
-FROM '/home/fgoureau/202012_liste_dm.csv' DELIMITER ';' CSV HEADER;
+FROM '/home/fgoureau/liste_dm.csv' DELIMITER ';' CSV HEADER;
 
 
 DROP TABLE IF EXISTS reporting_payment.truncate_insert_reporting_monthly_transaction; 
@@ -348,8 +348,8 @@ drop view reporting_payment.v_transaction_financial_monthly_reporting;
 
 	RAISE LOG '[%] REPORTING_MONTHLY INSERT TRANSACTION WALLET 1', to_char(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
 
-	DROP TABLE IF EXISTS t_hipay_transaction;
-	CREATE TEMP TABLE t_hipay_transaction ON COMMIT DROP AS
+	DROP TABLE IF EXISTS t_transaction;
+	CREATE TEMP TABLE t_transaction ON COMMIT DROP AS
 	SELECT
 		hpt.transaction_id,
 		hpt.transaction_date::date AS transaction_date,
@@ -366,7 +366,7 @@ drop view reporting_payment.v_transaction_financial_monthly_reporting;
 	   	mer.sub_account_name, 
 	   	mer.account_id,
 	   	i.avg_quotation_value
-	FROM logs.payment_hipay_transaction hpt
+	FROM logs.payment_transaction hpt
 	INNER JOIN dimensions.payment_applifi_merchants mer ON mer.id = hpt.merchant_id
 	INNER JOIN t_intervals_reporting_mensuel i ON (i.start_date_day = hpt.transaction_date::date AND i.base_currency_id = hpt.devise_id) 
 	WHERE
@@ -374,14 +374,14 @@ drop view reporting_payment.v_transaction_financial_monthly_reporting;
 		hpt.transaction_date < v_end AND
 		hpt.transaction_type_id IN (3,4,12,13,14);
 
-	CREATE INDEX ON t_hipay_transaction(transaction_id);
-	CREATE INDEX ON t_hipay_transaction(transaction_date);
-	CREATE INDEX ON t_hipay_transaction(devise_id);
-	CREATE INDEX ON t_hipay_transaction(merchant_id);
-	CREATE INDEX ON t_hipay_transaction(country_id);
-	CREATE INDEX ON t_hipay_transaction(psp_id);
-	CREATE INDEX ON t_hipay_transaction(acqueror_id);
-	CREATE INDEX ON t_hipay_transaction(payment_method_id);
+	CREATE INDEX ON t_transaction(transaction_id);
+	CREATE INDEX ON t_transaction(transaction_date);
+	CREATE INDEX ON t_transaction(devise_id);
+	CREATE INDEX ON t_transaction(merchant_id);
+	CREATE INDEX ON t_transaction(country_id);
+	CREATE INDEX ON t_transaction(psp_id);
+	CREATE INDEX ON t_transaction(acqueror_id);
+	CREATE INDEX ON t_transaction(payment_method_id);
 
 
 	RAISE LOG '[%] REPORTING_MONTHLY INSERT TRANSACTION WALLET 2', to_char(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
@@ -429,8 +429,8 @@ drop view reporting_payment.v_transaction_financial_monthly_reporting;
 		SUM(CASE WHEN st.captured IS NOT NULL THEN (hpt.montant_devise * hpt.avg_quotation_value) END)::numeric(13,2) AS end_user_amount_authorized,
 		SUM(CASE WHEN st.captured IS NOT NULL THEN (hpt.montant_devise * hpt.avg_quotation_value) END)::numeric(13,2)  AS end_user_amount_captured
 
-	FROM t_hipay_transaction hpt
-	INNER JOIN scripts.payment_hipay_transaction_status st ON hpt.transaction_id = st.transaction_id
+	FROM t_transaction hpt
+	INNER JOIN scripts.payment_transaction_status st ON hpt.transaction_id = st.transaction_id
 	INNER JOIN dimensions.payment_common_payment_method pcpm ON pcpm.id = hpt.payment_method_id
 	INNER JOIN dimensions.common_countries	cc ON cc.id = hpt.country_id
 	INNER JOIN dimensions.common_currencies cur ON cur.id = hpt.devise_id
@@ -469,7 +469,7 @@ drop view reporting_payment.v_transaction_financial_monthly_reporting;
 
 	INSERT INTO reporting_payment.truncate_insert_reporting_monthly_financial
 	SELECT 
-		CASE WHEN client_entity = 'Hipay Wallet' THEN 'Professional' ELSE 'Enterprise' END AS product,
+		CASE WHEN client_entity =  Wallet' THEN 'Professional' ELSE 'Enterprise' END AS product,
 		TO_CHAR (start_date AT TIME ZONE 'Europe/Paris', 'YYYY-MM') AS financial_month, 
 		mer.company_name, 
 		mer.business_id, 
@@ -495,7 +495,7 @@ drop view reporting_payment.v_transaction_financial_monthly_reporting;
 	INNER JOIN dimensions.payment_common_payment_product pcpp ON pcpp.id = conso.payment_product_id
 	--INNER JOIN dimensions.payment_allopass_price_point_methods pcm ON ppm.id = conso.price_point_method_id 
 	WHERE
-		conso.client_entity IN ('Hipay Wallet', 'TPP')  
+		conso.client_entity IN ('Wallet', 'TPP')  
 	GROUP BY 1,2,3,4,5,6,7,8,9--,10
 	; 
 
@@ -600,8 +600,8 @@ select reporting_payment.truncate_insert_reporting_monthly();
 
 /*
 --Copie DEV
-psql -p 5432 -U postgres -h dwh-etx.reporting.db datawarehouse -c "\copy (select * from sandbox.truncate_insert_reporting_monthly_financial) to stdout"  | psql -p 6432 -U postgres -h dwh.reporting.dev datawarehouse  -c "\copy sandbox.truncate_insert_reporting_monthly_financial from stdin"
-psql -p 5432 -U postgres -h dwh-etx.reporting.db datawarehouse -c "\copy (select * from sandbox.truncate_insert_reporting_monthly_transaction) to stdout"  | psql -p 6432 -U postgres -h dwh.reporting.dev datawarehouse  -c "\copy sandbox.truncate_insert_reporting_monthly_transaction from stdin"
+psql -p 5432 -U postgres -h dwhx.reporting.db datawarehouse -c "\copy (select * from sandbox.truncate_insert_reporting_monthly_financial) to stdout"  | psql -p 6432 -U postgres -h dwh.dev datawarehouse  -c "\copy sandbox.truncate_insert_reporting_monthly_financial from stdin"
+psql -p 5432 -U postgres -h dwh.reporting.db datawarehouse -c "\copy (select * from sandbox.truncate_insert_reporting_monthly_transaction) to stdout"  | psql -p 6432 -U postgres -h dwh.dev datawarehouse  -c "\copy sandbox.truncate_insert_reporting_monthly_transaction from stdin"
 
 
 select distinct transaction_month from reporting_payment.v_monthly_reporting_transaction_financial;
